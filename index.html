@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a14">
+<title>Breathe — Wim Hof Method</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a14;
+    --surface: rgba(255,255,255,0.05);
+    --surface2: rgba(255,255,255,0.08);
+    --border: rgba(255,255,255,0.1);
+    --text: #f0f0ff;
+    --muted: rgba(240,240,255,0.5);
+    --dim: rgba(240,240,255,0.25);
+
+    --breathe-1: #1a4466;
+    --breathe-2: #0d6efd;
+    --hold-1: #7c2d12;
+    --hold-2: #f97316;
+    --recovery-1: #14532d;
+    --recovery-2: #22c55e;
+    --complete-1: #4a1d96;
+    --complete-2: #a855f7;
+    --ready-1: #1e1b4b;
+    --ready-2: #6366f1;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+  }
+
+  /* Animated background */
+  .bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    transition: background 1.5s ease;
+    background: radial-gradient(ellipse at 20% 20%, var(--c1, #1e1b4b) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, var(--c2, #0a0a14) 0%, transparent 60%),
+                var(--bg);
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px);
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0 12px;
+  }
+
+  .app-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    letter-spacing: -0.01em;
+    background: linear-gradient(135deg, #e0e7ff, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-icons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+  }
+  .icon-btn:active { transform: scale(0.92); }
+  .icon-btn.active { background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.5); color: #818cf8; }
+
+  /* Main display area */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+    gap: 20px;
+  }
+
+  /* Round indicator */
+  .round-indicator {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .round-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--dim);
+    transition: all 0.4s ease;
+  }
+  .round-dot.active { background: #818cf8; transform: scale(1.4); }
+  .round-dot.done { background: #22c55e; }
+
+  /* Phase label */
+  .phase-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dim);
+    text-align: center;
+  }
+
+  /* Breathing orb */
+  .orb-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 260px;
+    height: 260px;
+  }
+
+  .orb-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .ring-1 { width: 260px; height: 260px; }
+  .ring-2 { width: 220px; height: 220px; border-color: rgba(255,255,255,0.06); }
+  .ring-3 { width: 180px; height: 180px; border-color: rgba(255,255,255,0.04); }
+
+  .orb {
+    position: relative;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 150px;
+    height: 150px;
+  }
+
+  .orb.breathe-in {
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle at 35% 35%, #60a5fa, #1d4ed8);
+    box-shadow: 0 0 60px rgba(59,130,246,0.5), 0 0 120px rgba(59,130,246,0.2);
+  }
+  .orb.breathe-out {
+    width: 140px;
+    height: 140px;
+    background: radial-gradient(circle at 35% 35%, #93c5fd, #3b82f6);
+    box-shadow: 0 0 30px rgba(59,130,246,0.3);
+  }
+  .orb.hold {
+    width: 170px;
+    height: 170px;
+    background: radial-gradient(circle at 35% 35%, #fb923c, #c2410c);
+    box-shadow: 0 0 60px rgba(249,115,22,0.5), 0 0 120px rgba(249,115,22,0.2);
+    animation: holdPulse 2s ease-in-out infinite;
+  }
+  .orb.recovery {
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle at 35% 35%, #4ade80, #15803d);
+    box-shadow: 0 0 60px rgba(34,197,94,0.5), 0 0 120px rgba(34,197,94,0.2);
+  }
+  .orb.complete {
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle at 35% 35%, #c084fc, #7c3aed);
+    box-shadow: 0 0 60px rgba(168,85,247,0.5), 0 0 120px rgba(168,85,247,0.2);
+    animation: completePulse 2s ease-in-out infinite;
+  }
+  .orb.ready {
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle at 35% 35%, #818cf8, #3730a3);
+    box-shadow: 0 0 40px rgba(99,102,241,0.3);
+  }
+
+  @keyframes holdPulse {
+    0%,100% { box-shadow: 0 0 60px rgba(249,115,22,0.5), 0 0 120px rgba(249,115,22,0.2); }
+    50% { box-shadow: 0 0 80px rgba(249,115,22,0.7), 0 0 160px rgba(249,115,22,0.3); }
+  }
+  @keyframes completePulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  .orb-number {
+    font-family: 'DM Serif Display', serif;
+    font-size: 3rem;
+    color: white;
+    line-height: 1;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+  .orb-label {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.75);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* Instruction text */
+  .instruction {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    font-weight: 400;
+    text-align: center;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    min-height: 2.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+    transition: opacity 0.3s ease;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+  }
+  .stat-card {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .stat-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    color: var(--text);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-top: 4px;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    padding-bottom: 8px;
+  }
+
+  .btn-primary {
+    flex: 1;
+    height: 64px;
+    border-radius: 18px;
+    border: none;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 24px rgba(79,70,229,0.4);
+    transition: all 0.2s;
+    letter-spacing: 0.01em;
+  }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-primary.pause {
+    background: linear-gradient(135deg, #d97706, #f59e0b);
+    box-shadow: 0 4px 24px rgba(217,119,6,0.4);
+  }
+  .btn-primary.go {
+    background: linear-gradient(135deg, #059669, #10b981);
+    box-shadow: 0 4px 24px rgba(5,150,105,0.4);
+  }
+
+  .btn-secondary {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .btn-secondary:active { transform: scale(0.92); background: var(--surface2); }
+
+  /* Speed selector */
+  .speed-selector {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 16px;
+  }
+  .speed-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .speed-btns {
+    display: flex;
+    gap: 8px;
+  }
+  .speed-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .speed-btn.selected {
+    background: rgba(99,102,241,0.2);
+    border-color: rgba(99,102,241,0.5);
+    color: #a5b4fc;
+  }
+  .speed-btn .speed-sub { font-size: 0.7rem; color: var(--dim); margin-top: 2px; }
+  .speed-btn.selected .speed-sub { color: rgba(165,180,252,0.7); }
+
+  /* Hold action */
+  .hold-action {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(249,115,22,0.3);
+    background: rgba(249,115,22,0.08);
+    color: #fb923c;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .hold-action:active { background: rgba(249,115,22,0.15); }
+
+  /* Tips */
+  .tips {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px;
+  }
+  .tips-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 8px;
+  }
+  .tips ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+  .tips li { font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
+  .tips li::before { content: '·  '; color: var(--dim); }
+
+  /* Results */
+  .results {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 18px;
+    display: none;
+  }
+  .results.show { display: block; }
+  .results-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: 10px;
+    margin-bottom: 6px;
+  }
+  .result-round { font-size: 0.82rem; color: var(--muted); }
+  .result-time { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: #818cf8; }
+  .result-avg {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 4px 0;
+    border-top: 1px solid var(--border);
+    margin-top: 6px;
+  }
+  .result-avg span:first-child { font-size: 0.82rem; color: var(--muted); }
+  .result-avg span:last-child { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: #22c55e; }
+
+  /* History panel */
+  .panel {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: var(--bg);
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    overflow-y: auto;
+    padding: env(safe-area-inset-top,20px) 20px env(safe-area-inset-bottom,20px);
+  }
+  .panel.open { transform: translateX(0); }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 0 24px;
+  }
+  .panel-back {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .panel-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    color: var(--text);
+  }
+
+  /* Calendar */
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 20px;
+  }
+  .cal-day-name {
+    text-align: center;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--dim);
+    padding: 6px 0;
+    letter-spacing: 0.05em;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    color: var(--muted);
+    background: var(--surface);
+    position: relative;
+    cursor: default;
+  }
+  .cal-day.today { background: rgba(99,102,241,0.15); color: #a5b4fc; font-weight: 600; }
+  .cal-day.has-session { background: rgba(34,197,94,0.12); color: #4ade80; font-weight: 600; }
+  .cal-day .dot { position: absolute; bottom: 3px; width: 4px; height: 4px; border-radius: 50%; background: #22c55e; }
+
+  /* Chart */
+  .chart-area {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+  .chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 140px;
+    min-width: 500px;
+  }
+  .chart-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+  .chart-bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    background: linear-gradient(to top, #4f46e5, #818cf8);
+    min-height: 2px;
+    transition: height 0.5s ease;
+  }
+  .chart-date { font-size: 0.58rem; color: var(--dim); text-align: center; }
+
+  /* Stats summary card */
+  .stats-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .stats-card h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .mini-stat { text-align: center; }
+  .mini-stat-val { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: #818cf8; }
+  .mini-stat-label { font-size: 0.65rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+  /* History list */
+  .history-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .history-date { font-size: 0.82rem; color: var(--muted); }
+  .history-avg { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: #818cf8; }
+
+  /* Complete screen bonus */
+  .complete-emoji { font-size: 2.5rem; text-align: center; animation: bounce 1s ease infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+</style>
+</head>
+<body>
+
+<div class="bg-canvas" id="bgCanvas"></div>
+
+<div class="container">
+  <div class="header">
+    <div class="app-title">Breathe</div>
+    <div class="header-icons">
+      <button class="icon-btn" id="chartBtn" onclick="openPanel('chart')" title="Progress">📊</button>
+      <button class="icon-btn" id="calBtn" onclick="openPanel('calendar')" title="Calendar">📅</button>
+      <button class="icon-btn" id="muteBtn" onclick="toggleMute()" title="Sound">🔊</button>
+      <button class="icon-btn" id="hapticBtn" onclick="toggleHaptic()" title="Haptic">📳</button>
+    </div>
+  </div>
+
+  <div class="main" id="mainArea">
+
+    <!-- Round dots -->
+    <div class="round-indicator" id="roundDots"></div>
+
+    <!-- Phase label -->
+    <div class="phase-label" id="phaseLabel">Wim Hof Method</div>
+
+    <!-- Orb -->
+    <div class="orb-container">
+      <div class="orb-ring ring-1" id="ring1"></div>
+      <div class="orb-ring ring-2" id="ring2"></div>
+      <div class="orb-ring ring-3" id="ring3"></div>
+      <div class="orb ready" id="orb">
+        <div class="orb-number" id="orbNumber">—</div>
+        <div class="orb-label" id="orbLabel"></div>
+      </div>
+    </div>
+
+    <!-- Instruction -->
+    <div class="instruction" id="instruction">Ready to begin</div>
+
+    <!-- Stats -->
+    <div class="stats-row" id="statsRow" style="display:none">
+      <div class="stat-card">
+        <div class="stat-val" id="statA">0</div>
+        <div class="stat-label" id="statALabel">Breaths</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="statB">0:00</div>
+        <div class="stat-label">Time</div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="results" id="resultsDiv">
+      <div class="results-title">Session Results</div>
+      <div id="resultRows"></div>
+      <div class="result-avg">
+        <span>Average hold</span>
+        <span id="avgHold">—</span>
+      </div>
+    </div>
+
+    <!-- Speed selector (ready state) -->
+    <div class="speed-selector" id="speedSelector">
+      <div class="speed-label">Breathing Speed</div>
+      <div class="speed-btns">
+        <button class="speed-btn selected" id="speedNormal" onclick="setSpeed('normal')">
+          <div>Normal</div>
+          <div class="speed-sub">2.5s/breath</div>
+        </button>
+        <button class="speed-btn" id="speedSlow" onclick="setSpeed('slow')">
+          <div>Slow</div>
+          <div class="speed-sub">3.5s/breath</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tips -->
+    <div class="tips" id="tipsDiv">
+      <div class="tips-title">How it works</div>
+      <ul>
+        <li>Take 40 deep breaths — in through nose, out through mouth</li>
+        <li>After the last exhale, hold your breath as long as comfortable</li>
+        <li>Tap "End Hold" when you need to breathe</li>
+        <li>Take a deep recovery breath and hold 15 seconds</li>
+        <li>Repeat for 3 rounds</li>
+      </ul>
+    </div>
+
+    <!-- Hold end action -->
+    <button class="hold-action" id="holdAction" style="display:none" onclick="endHold()">
+      Tap to end hold & breathe 🌬️
+    </button>
+
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="btn-primary" id="mainBtn" onclick="mainAction()">▶ Start</button>
+    <button class="btn-secondary" onclick="resetAll()" title="Reset">↺</button>
+  </div>
+</div>
+
+<!-- Chart Panel -->
+<div class="panel" id="chartPanel">
+  <div style="max-width:480px;margin:0 auto;">
+    <div class="panel-header">
+      <button class="panel-back" onclick="closePanel('chart')">←</button>
+      <div class="panel-title">Progress</div>
+    </div>
+    <div class="chart-area">
+      <div class="chart-bars" id="chartBars"></div>
+    </div>
+    <div class="stats-card">
+      <h3>30-Day Summary</h3>
+      <div class="stats-grid">
+        <div class="mini-stat"><div class="mini-stat-val" id="sum30Sessions">0</div><div class="mini-stat-label">Sessions</div></div>
+        <div class="mini-stat"><div class="mini-stat-val" id="sum30Avg">—</div><div class="mini-stat-label">Avg Hold</div></div>
+        <div class="mini-stat"><div class="mini-stat-val" id="sum30Best">—</div><div class="mini-stat-label">Best Hold</div></div>
+        <div class="mini-stat"><div class="mini-stat-val" id="sum30Streak">0</div><div class="mini-stat-label">Day Streak</div></div>
+      </div>
+    </div>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<!-- Calendar Panel -->
+<div class="panel" id="calendarPanel">
+  <div style="max-width:480px;margin:0 auto;">
+    <div class="panel-header">
+      <button class="panel-back" onclick="closePanel('calendar')">←</button>
+      <div class="panel-title" id="calTitle"></div>
+    </div>
+    <div class="calendar-grid" id="calGrid"></div>
+    <div class="stats-card">
+      <h3>This Month</h3>
+      <div class="stats-grid">
+        <div class="mini-stat"><div class="mini-stat-val" id="calSessions">0</div><div class="mini-stat-label">Sessions</div></div>
+        <div class="mini-stat"><div class="mini-stat-val" id="calAvg">—</div><div class="mini-stat-label">Avg Hold</div></div>
+        <div class="mini-stat"><div class="mini-stat-val" id="calBest">—</div><div class="mini-stat-label">Best Hold</div></div>
+        <div class="mini-stat"><div class="mini-stat-val" id="calDays">0</div><div class="mini-stat-label">Days Active</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────
+let phase = 'ready';
+let isActive = false;
+let round = 1;
+const TOTAL_ROUNDS = 3;
+const BREATHS_PER_ROUND = 40;
+let breathCount = 0;
+let holdTime = 0;
+let mainInterval = null;
+let breathHalfTimer = null;
+let breathPhaseIn = true;
+let sessionResults = [];
+let isMuted = false;
+let isHapticEnabled = true;
+let breathSpeed = 'normal';
+let sessionHistory = [];
+let audioCtx = null;
+let ambientOscs = [];
+let ambientPulseTimer = null;
+
+// ── Boot ──────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  loadHistory();
+  renderRoundDots();
+  setBg('ready');
+});
+
+function loadHistory() {
+  try { sessionHistory = JSON.parse(localStorage.getItem('wimhof-v3') || '[]'); }
+  catch(e) { sessionHistory = []; }
+}
+function saveHistory() {
+  localStorage.setItem('wimhof-v3', JSON.stringify(sessionHistory));
+}
+
+// ── UI Helpers ────────────────────────────────────────
+function el(id) { return document.getElementById(id); }
+function show(id) { el(id).style.display = ''; }
+function hide(id) { el(id).style.display = 'none'; }
+function setText(id, txt) { el(id).textContent = txt; }
+
+function setOrb(cls, num, lbl) {
+  el('orb').className = 'orb ' + cls;
+  el('orbNumber').textContent = num;
+  el('orbLabel').textContent = lbl || '';
+}
+
+function setBtn(label, extra) {
+  const b = el('mainBtn');
+  b.textContent = label;
+  b.className = 'btn-primary' + (extra ? ' ' + extra : '');
+}
+
+function setBg(p) {
+  const map = {
+    ready:    ['#1e1b4b','#0a0a14'],
+    breathe:  ['#1a4466','#0d1b33'],
+    hold:     ['#7c2d12','#1a0a00'],
+    recovery: ['#14532d','#0a1a0d'],
+    complete: ['#4a1d96','#1a0a33'],
+  };
+  const [c1,c2] = map[p] || map.ready;
+  const bg = el('bgCanvas');
+  bg.style.setProperty('--c1', c1);
+  bg.style.setProperty('--c2', c2);
+}
+
+function renderRoundDots() {
+  const wrap = el('roundDots');
+  wrap.innerHTML = '';
+  for (let i = 1; i <= TOTAL_ROUNDS; i++) {
+    const d = document.createElement('div');
+    d.className = 'round-dot' + (i < round ? ' done' : i === round ? ' active' : '');
+    wrap.appendChild(d);
+  }
+}
+
+function fmtTime(s) {
+  const m = Math.floor(s / 60), sec = s % 60;
+  return m > 0 ? `${m}m ${sec}s` : `${sec}s`;
+}
+
+// ── Main Button ───────────────────────────────────────
+function mainAction() {
+  if (phase === 'ready' || phase === 'complete') {
+    startSession();
+  } else if (isActive) {
+    pauseSession();
+  } else {
+    resumeSession();
+  }
+}
+
+// ── Session Control ───────────────────────────────────
+function startSession() {
+  // Unlock audio on user gesture
+  initAudio();
+
+  phase = 'breathe';
+  round = 1;
+  breathCount = 0;
+  holdTime = 0;
+  sessionResults = [];
+  isActive = true;
+  breathPhaseIn = true;
+
+  hide('speedSelector');
+  hide('tipsDiv');
+  hide('resultsDiv');
+  hide('holdAction');
+  el('statsRow').style.display = 'flex';
+
+  setBg('breathe');
+  renderRoundDots();
+  setText('phaseLabel', `Round 1 of ${TOTAL_ROUNDS} · Breathing`);
+  setText('statALabel', 'Breaths');
+  setText('statB', '0:00');
+  setBtn('⏸ Pause', 'pause');
+  startBreatheLoop();
+}
+
+function pauseSession() {
+  isActive = false;
+  clearTimers();
+  stopAmbient();
+  setBtn('▶ Resume', '');
+}
+
+function resumeSession() {
+  isActive = true;
+  if (phase === 'breathe') startBreatheLoop();
+  else if (phase === 'hold') startHoldLoop();
+  else if (phase === 'recovery') startRecoveryLoop();
+  setBtn('⏸ Pause', 'pause');
+}
+
+function resetAll() {
+  isActive = false;
+  clearTimers();
+  stopAmbient();
+  phase = 'ready';
+  round = 1;
+  breathCount = 0;
+  holdTime = 0;
+  sessionResults = [];
+
+  show('speedSelector');
+  show('tipsDiv');
+  hide('statsRow');
+  hide('holdAction');
+  hide('resultsDiv');
+
+  setBg('ready');
+  renderRoundDots();
+  setOrb('ready', '—', '');
+  setText('instruction', 'Ready to begin');
+  setText('phaseLabel', 'Wim Hof Method');
+  setText('statA', '0');
+  setText('statB', '0:00');
+  setBtn('▶ Start', '');
+}
+
+// ── Breathe Loop ──────────────────────────────────────
+function startBreatheLoop() {
+  const cycleMs = breathSpeed === 'slow' ? 3500 : 2500;
+  const halfMs = cycleMs / 2;
+
+  function doBreatheIn() {
+    clearTimeout(breathHalfTimer);
+    setOrb('breathe-in', breathCount + 1, 'of ' + BREATHS_PER_ROUND);
+    setText('instruction', 'Breathe In Deep');
+    haptic('light');
+    playWhoosh('in', halfMs / 1000);
+    breathHalfTimer = setTimeout(() => {
+      if (!isActive || phase !== 'breathe') return;
+      setOrb('breathe-out', breathCount + 1, 'of ' + BREATHS_PER_ROUND);
+      setText('instruction', 'Let Go');
+      playWhoosh('out', halfMs / 1000);
+    }, halfMs);
+  }
+
+  startAmbient();
+  doBreatheIn();
+
+  mainInterval = setInterval(() => {
+    if (!isActive || phase !== 'breathe') return;
+    breathCount++;
+    setText('statA', breathCount);
+
+    if (breathCount >= BREATHS_PER_ROUND) {
+      clearTimers();
+      stopAmbient();
+      breathCount = 0;
+      haptic('heavy');
+      playTone(440, 880, 0.35);
+      goToHold();
+      return;
+    }
+    doBreatheIn();
+  }, cycleMs);
+}
+
+// ── Hold Loop ─────────────────────────────────────────
+function goToHold() {
+  phase = 'hold';
+  holdTime = 0;
+  setBg('hold');
+  setText('phaseLabel', `Round ${round} · Breath Hold`);
+  setText('instruction', 'Hold Your Breath');
+  setText('statALabel', 'Holding');
+  setText('statA', '0s');
+  setOrb('hold', '0s', 'hold your breath');
+  el('holdAction').style.display = 'block';
+  setBtn('⏸ Pause', 'pause');
+  startHoldLoop();
+}
+
+function startHoldLoop() {
+  mainInterval = setInterval(() => {
+    if (!isActive) return;
+    holdTime++;
+    const t = fmtTime(holdTime);
+    setOrb('hold', t, 'tap below to breathe');
+    setText('statA', t);
+    setText('statB', t);
+    if (holdTime % 60 === 0 && holdTime > 0) playChime();
+  }, 1000);
+}
+
+function endHold() {
+  if (phase !== 'hold') return;
+  clearTimers();
+  haptic('double');
+  playTone(523, 659, 0.3);
+  sessionResults.push({ round, holdTime });
+  hide('holdAction');
+  goToRecovery();
+}
+
+// ── Recovery Loop ─────────────────────────────────────
+function goToRecovery() {
+  phase = 'recovery';
+  let countdown = 15;
+  setBg('recovery');
+  setText('phaseLabel', `Round ${round} · Recovery`);
+  setText('instruction', 'Deep breath in — hold for 15 seconds');
+  setText('statALabel', 'Recovery');
+  setOrb('recovery', '15s', 'hold after deep breath');
+  setBtn('⏸ Pause', 'pause');
+  startRecoveryLoop();
+}
+
+function startRecoveryLoop() {
+  let countdown = 15;
+  mainInterval = setInterval(() => {
+    if (!isActive) return;
+    countdown--;
+    setText('statA', countdown + 's');
+    setOrb('recovery', countdown > 0 ? countdown + 's' : '✓', countdown > 0 ? 'hold on...' : 'well done!');
+    if (countdown <= 0) {
+      clearTimers();
+      if (round >= TOTAL_ROUNDS) {
+        finishSession();
+      } else {
+        round++;
+        breathCount = 0;
+        renderRoundDots();
+        playTone(440, 880, 0.35);
+        phase = 'breathe';
+        setBg('breathe');
+        setText('phaseLabel', `Round ${round} of ${TOTAL_ROUNDS} · Breathing`);
+        setText('statALabel', 'Breaths');
+        setText('instruction', 'Breathe In Deep');
+        startBreatheLoop();
+      }
+    }
+  }, 1000);
+}
+
+// ── Complete ──────────────────────────────────────────
+function finishSession() {
+  phase = 'complete';
+  isActive = false;
+  setBg('complete');
+  setText('phaseLabel', 'Session Complete 🌟');
+  setText('instruction', 'Amazing — you did it!');
+  setOrb('complete', '🎉', '');
+  hide('holdAction');
+  setBtn('▶ Start Again', 'go');
+  renderRoundDots();
+  playCompletion();
+  haptic('double');
+
+  // Show results
+  const rows = el('resultRows');
+  rows.innerHTML = sessionResults.map(r =>
+    `<div class="result-row"><span class="result-round">Round ${r.round}</span><span class="result-time">${fmtTime(r.holdTime)}</span></div>`
+  ).join('');
+  if (sessionResults.length > 0) {
+    const avg = Math.round(sessionResults.reduce((a,r) => a + r.holdTime, 0) / sessionResults.length);
+    setText('avgHold', fmtTime(avg));
+  }
+  el('resultsDiv').style.display = 'block';
+
+  // Save
+  if (sessionResults.length > 0) {
+    const avg = Math.round(sessionResults.reduce((a,r) => a + r.holdTime, 0) / sessionResults.length);
+    sessionHistory.push({ date: new Date().toISOString(), rounds: sessionResults, averageHold: avg });
+    saveHistory();
+  }
+}
+
+// ── Speed ─────────────────────────────────────────────
+function setSpeed(s) {
+  breathSpeed = s;
+  el('speedNormal').className = 'speed-btn' + (s === 'normal' ? ' selected' : '');
+  el('speedSlow').className = 'speed-btn' + (s === 'slow' ? ' selected' : '');
+}
+
+// ── Audio ─────────────────────────────────────────────
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function startAmbient() {
+  if (isMuted || ambientOscs.length > 0) return;
+  initAudio();
+  [110, 165, 220].forEach((freq, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const filter = audioCtx.createBiquadFilter();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    filter.type = 'lowpass';
+    filter.frequency.value = 400;
+    gain.gain.value = 0;
+    osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+    osc.start();
+    gain.gain.linearRampToValueAtTime(0.05 / (i + 1), audioCtx.currentTime + 1);
+    ambientOscs.push({ osc, gain });
+  });
+
+  const cycleMs = breathSpeed === 'slow' ? 3500 : 2500;
+  ambientPulseTimer = setInterval(() => {
+    if (!audioCtx || ambientOscs.length === 0) return;
+    try {
+      const p = audioCtx.createOscillator();
+      const pg = audioCtx.createGain();
+      p.type = 'sine'; p.frequency.value = 80;
+      p.connect(pg); pg.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+      pg.gain.setValueAtTime(0.1, now);
+      pg.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      p.start(now); p.stop(now + 0.3);
+    } catch(e) {}
+  }, cycleMs);
+}
+
+function stopAmbient() {
+  clearInterval(ambientPulseTimer);
+  ambientPulseTimer = null;
+  if (audioCtx) {
+    ambientOscs.forEach(({ osc, gain }) => {
+      try {
+        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+        setTimeout(() => { try { osc.stop(); } catch(e) {} }, 600);
+      } catch(e) {}
+    });
+  }
+  ambientOscs = [];
+}
+
+function playTone(f1, f2, vol) {
+  if (isMuted || !audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine'; osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.frequency.setValueAtTime(f1, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(f2, audioCtx.currentTime + 0.4);
+  gain.gain.setValueAtTime(vol || 0.3, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+  osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.6);
+}
+
+function playWhoosh(direction, durationSecs) {
+  if (isMuted || !audioCtx) return;
+  try {
+    const bufSize = Math.floor(audioCtx.sampleRate * durationSecs);
+    const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) {
+      data[i] = (Math.random() * 2 - 1);
+    }
+    const source = audioCtx.createBufferSource();
+    source.buffer = buffer;
+
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.Q.value = 1.2;
+
+    const gain = audioCtx.createGain();
+
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+
+    if (direction === 'in') {
+      // Rising whoosh — frequency and volume rise then fall
+      filter.frequency.setValueAtTime(400, now);
+      filter.frequency.linearRampToValueAtTime(1200, now + durationSecs * 0.5);
+      filter.frequency.linearRampToValueAtTime(800, now + durationSecs);
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.35, now + durationSecs * 0.3);
+      gain.gain.linearRampToValueAtTime(0.15, now + durationSecs);
+    } else {
+      // Falling whoosh — frequency and volume fall
+      filter.frequency.setValueAtTime(1000, now);
+      filter.frequency.linearRampToValueAtTime(300, now + durationSecs);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.linearRampToValueAtTime(0.35, now + durationSecs * 0.2);
+      gain.gain.linearRampToValueAtTime(0, now + durationSecs);
+    }
+
+    source.start(now);
+    source.stop(now + durationSecs);
+  } catch(e) {
+    console.log('Whoosh error:', e);
+  }
+}
+
+function playChime() {
+  if (isMuted || !audioCtx) return;
+  [523.25, 659.25, 783.99].forEach((freq, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine'; osc.connect(gain); gain.connect(audioCtx.destination);
+    const t = audioCtx.currentTime + i * 0.05;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.18, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+    osc.start(t); osc.stop(t + 1.5);
+  });
+}
+
+function playCompletion() {
+  if (isMuted || !audioCtx) return;
+  [[523, 659, 783], [587, 739, 880], [659, 830, 987]].forEach((chord, ci) => {
+    chord.forEach(freq => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine'; osc.connect(gain); gain.connect(audioCtx.destination);
+      const t = audioCtx.currentTime + ci * 0.3;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.12, t + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+      osc.start(t); osc.stop(t + 0.8);
+    });
+  });
+}
+
+// ── Haptic ────────────────────────────────────────────
+function haptic(type) {
+  if (!isHapticEnabled || !navigator.vibrate) return;
+  const p = { light: [10], medium: [20], heavy: [50], double: [30, 50, 30] };
+  navigator.vibrate(p[type] || [20]);
+}
+
+function toggleMute() {
+  isMuted = !isMuted;
+  el('muteBtn').textContent = isMuted ? '🔇' : '🔊';
+  el('muteBtn').classList.toggle('active', isMuted);
+  if (isMuted) stopAmbient();
+  else if (phase === 'breathe' && isActive) startAmbient();
+}
+
+function toggleHaptic() {
+  isHapticEnabled = !isHapticEnabled;
+  el('hapticBtn').textContent = isHapticEnabled ? '📳' : '📴';
+  el('hapticBtn').classList.toggle('active', !isHapticEnabled);
+}
+
+// ── Timers ────────────────────────────────────────────
+function clearTimers() {
+  clearInterval(mainInterval); mainInterval = null;
+  clearTimeout(breathHalfTimer); breathHalfTimer = null;
+}
+
+// ── Panels ────────────────────────────────────────────
+function openPanel(name) {
+  if (name === 'chart') buildChart();
+  if (name === 'calendar') buildCalendar();
+  el(name + 'Panel').classList.add('open');
+  el(name === 'chart' ? 'chartBtn' : 'calBtn').classList.add('active');
+}
+
+function closePanel(name) {
+  el(name + 'Panel').classList.remove('open');
+  el(name === 'chart' ? 'chartBtn' : 'calBtn').classList.remove('active');
+}
+
+function buildChart() {
+  const today = new Date();
+  const days = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    const key = d.toISOString().split('T')[0];
+    const daySessions = sessionHistory.filter(s => new Date(s.date).toISOString().split('T')[0] === key);
+    const avg = daySessions.length > 0 ? Math.round(daySessions.reduce((a, s) => a + s.averageHold, 0) / daySessions.length) : 0;
+    days.push({ d, avg, count: daySessions.length });
+  }
+  const maxAvg = Math.max(...days.map(d => d.avg), 30);
+  el('chartBars').innerHTML = days.map(day => `
+    <div class="chart-bar-wrap">
+      <div class="chart-bar" style="height:${day.avg > 0 ? (day.avg / maxAvg * 120) : 2}px;opacity:${day.avg > 0 ? 1 : 0.1}"></div>
+      <div class="chart-date">${day.d.getDate()}</div>
+    </div>`).join('');
+
+  const total = days.reduce((a, d) => a + d.count, 0);
+  el('sum30Sessions').textContent = total;
+  const withData = days.filter(d => d.avg > 0);
+  el('sum30Avg').textContent = withData.length > 0 ? fmtTime(Math.round(withData.reduce((a,d) => a+d.avg, 0) / withData.length)) : '—';
+  const allHolds = sessionHistory.flatMap(s => s.rounds.map(r => r.holdTime));
+  el('sum30Best').textContent = allHolds.length > 0 ? fmtTime(Math.max(...allHolds)) : '—';
+  let streak = 0;
+  for (let i = 0; i < days.length; i++) { if (days[days.length - 1 - i].count > 0) streak++; else break; }
+  el('sum30Streak').textContent = streak;
+  const recent = [...sessionHistory].reverse().slice(0, 10);
+  el('historyList').innerHTML = recent.map(s => `
+    <div class="history-item">
+      <div>
+        <div class="history-date">${new Date(s.date).toLocaleDateString('en-AU',{weekday:'short',month:'short',day:'numeric'})}</div>
+        <div style="font-size:0.72rem;color:var(--dim);margin-top:2px">${s.rounds.length} round${s.rounds.length!==1?'s':''}</div>
+      </div>
+      <div class="history-avg">${fmtTime(s.averageHold)}</div>
+    </div>`).join('') || '<div style="color:var(--dim);font-size:0.85rem;padding:16px 0;">No sessions yet — start breathing!</div>';
+}
+
+function buildCalendar() {
+  const now = new Date();
+  el('calTitle').textContent = now.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' });
+  const year = now.getFullYear(), month = now.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = now.getDate();
+  const sessionsByDate = {};
+  sessionHistory.forEach(s => {
+    const key = new Date(s.date).toISOString().split('T')[0];
+    sessionsByDate[key] = (sessionsByDate[key] || []).concat(s);
+  });
+  const grid = el('calGrid');
+  grid.innerHTML = ['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => `<div class="cal-day-name">${d}</div>`).join('');
+  grid.innerHTML += Array(firstDay).fill('<div></div>').join('');
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, month, d);
+    const key = date.toISOString().split('T')[0];
+    const has = (sessionsByDate[key] || []).length > 0;
+    const isToday = d === today;
+    grid.innerHTML += `<div class="cal-day${isToday?' today':''}${has?' has-session':''}">${d}${has?'<div class="dot"></div>':''}</div>`;
+  }
+  const monthSessions = sessionHistory.filter(s => { const d = new Date(s.date); return d.getMonth()===month && d.getFullYear()===year; });
+  el('calSessions').textContent = monthSessions.length;
+  el('calDays').textContent = Object.keys(sessionsByDate).filter(k => k.startsWith(`${year}-${String(month+1).padStart(2,'0')}`)).length;
+  const mAvg = monthSessions.length > 0 ? Math.round(monthSessions.reduce((a,s) => a+s.averageHold,0)/monthSessions.length) : 0;
+  el('calAvg').textContent = mAvg ? fmtTime(mAvg) : '—';
+  const mBest = monthSessions.flatMap(s => s.rounds.map(r => r.holdTime));
+  el('calBest').textContent = mBest.length > 0 ? fmtTime(Math.max(...mBest)) : '—';
+}
+</script>
+</body>
+</html>
